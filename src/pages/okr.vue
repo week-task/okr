@@ -3,7 +3,6 @@
   <slot name="headerTop">
     <HeaderTop :navList="navList" :funName="funName" :teamName="teamName"></HeaderTop>
   </slot>
-  <!--<q-btn color="primary" label="add kokr" @click="dialogKeyList = true" />-->
   <div class="year-month">
     <!--<q-btn color="primary" label="add kokr" @click="dialogKeyList = true" />-->
     <q-select dense class="okr-select" v-model="selectYear" :options="optionsYear" :display-value="`${selectYear ? selectYear : '*none*'}年`" />
@@ -81,7 +80,7 @@
       </q-bar>
 
       <q-card-section>
-        <div class="text-h6">『 {{ selectName }} 』{{ selectYear }}年{{ selectMonth }}月key</div>
+        <div class="text-h6">『 {{ selectName }} 』{{ selectYear }}年{{ selectMonth }}月 KEY</div>
       </q-card-section>
 
       <q-card-section class="q-pt-none">
@@ -112,7 +111,7 @@
                 {{ props.row.percent }}
               </q-td>
               <q-td key="op" :props="props" width="25%">
-                <q-btn flat color="primary" icon="visibility" @click="renderItemDetailDialog(props.row)">VIEW</q-btn>
+                <q-btn flat color="primary" icon="visibility" @click="renderKeyItemDetailDialog(props.row)">VIEW</q-btn>
                 <q-btn v-if="selectName === user.name" flat color="primary" icon="edit" @click="openDialog4editKokrListForm(props.row)">EDIT</q-btn>
                 <q-btn v-if="selectName === user.name" flat color="primary" icon="delete" @click="openDialog4delKokrListForm(props.row)">EDIT</q-btn>
               </q-td>
@@ -126,18 +125,23 @@
   <q-dialog v-model="dialogKeyItem" persistent transition-show="scale" transition-hide="scale">
     <q-card class="" style="width: 600px">
       <q-card-section>
-        <div class="text-h6">新增Key</div>
+        <div class="text-h6">{{ isEdit4KeyItem ? '编辑' : '新增' }}Key</div>
       </q-card-section>
 
       <q-card-section class="q-pt-none">
         <q-field
-          class="form-field"
-          :error="$v.kokrForm.kind.$error"
-          :error-message="errMessage.requireInfo">
-          <q-input label="类型"
-                   type="text"
-                   @input="$v.kokrForm.kind.$touch"
-                   v-model="kokrForm.kind" />
+          borderless
+          class="form-field">
+          <q-radio v-model="kokrForm.kind" val="1" label="工作目标" />
+          <q-radio v-model="kokrForm.kind" val="2" label="额外目标" />
+        </q-field>
+        <q-field
+          borderless
+          label="权重"
+          class="form-field">
+          <q-slider v-model="kokrForm.percent" :min="0" :max="100"
+                    label
+                    label-always/>
         </q-field>
         <q-field
           class="form-field"
@@ -145,17 +149,9 @@
           :error-message="$v.kokrForm.title.minLength ? errMessage.requireInfo : errMessage.minInfo">
           <q-input label="内容"
                    type="text"
+                   class="full-width"
                    @input="$v.kokrForm.title.$touch"
                    v-model="kokrForm.title" />
-        </q-field>
-        <q-field
-          class="form-field"
-          :error="$v.kokrForm.percent.$error"
-          :error-message="errMessage.requireInfo">
-          <q-input label="权重"
-                   type="text"
-                   @input="$v.kokrForm.percent.$touch"
-                   v-model="kokrForm.percent" />
         </q-field>
         <q-field
           class="form-field"
@@ -172,28 +168,149 @@
           <q-btn
             :loading="loadingOkr"
             color="primary"
-            @click="saveOkr">
+            @click="saveKeyOkr">
             保存
             <q-spinner-hourglass slot="loading" size="20px" />
             <span slot="loading">Loading...</span>
           </q-btn>
-          <q-btn label="取消" flat @click="dialogKeyItem = false" />
         </div>
       </q-card-section>
     </q-card>
   </q-dialog>
-  <q-dialog v-model="dialogItemDetail" persistent transition-show="scale" transition-hide="scale">
+  <q-dialog v-model="dialogKeyItemDetail" persistent transition-show="scale" transition-hide="scale">
     <q-card>
       <q-card-section class="row items-center q-pb-none">
-        <div class="text-h6">『 {{ dialogItemDetailTask }} 』的任务描述</div>
+        <div class="text-h6">『 {{ dialogKeyItemDetailTask }} 』的任务描述</div>
         <q-space />
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
 
       <q-card-section>
-        <p v-for="(itemP, index) in dialogItemDetailDesc.split('\n')" v-bind:key="index" class="show-energy-desc-p" style="min-width: 300px;margin-top: 10px;">
+        <p v-for="(itemP, index) in dialogKeyItemDetailDesc.split('\n')" v-bind:key="index" class="show-energy-desc-p" style="min-width: 300px;margin-top: 10px;">
           {{ itemP }}
         </p>
+      </q-card-section>
+    </q-card>
+  </q-dialog>
+  <q-dialog
+    v-model="dialogValueList"
+    persistent
+    :maximized="maximizedToggle"
+    transition-show="slide-up"
+    transition-hide="slide-down"
+  >
+    <q-card class="">
+      <q-bar>
+        <q-space />
+        <q-btn dense flat icon="close" v-close-popup @click="renderUserList">
+          <q-tooltip>关闭</q-tooltip>
+        </q-btn>
+      </q-bar>
+
+      <q-card-section>
+        <div class="text-h6">『 {{ selectName }} 』{{ selectYear }}年{{ selectMonth }}月 VALUE</div>
+      </q-card-section>
+
+      <q-card-section class="q-pt-none">
+        <div v-if="showSelfButton">
+          <q-btn label="新增" @click="dialogValueItem = true" />
+          <q-btn label="保存" :loading="loadingOkr" @click="addVokr" />
+        </div>
+        <br>
+        <q-list bordered class="rounded-borders">
+          <q-table
+            :data="vokrListForm.content"
+            :columns="columnsValue"
+            :pagination.sync="paginationControl"
+          >
+            <q-tr slot="body" slot-scope="props" :props="props">
+              <!--<q-td key="name" :props="props" width="25%">-->
+              <!--{{ props.row.name }}-->
+              <!--</q-td>-->
+              <q-td key="kind" :props="props" width="25%">
+                <div v-if="props.row.kind === '1'">工作目标</div>
+                <div v-if="props.row.kind === '2'">额外目标</div>
+              </q-td>
+              <q-td key="title" :props="props" width="25%">
+                {{ props.row.title }}
+              </q-td>
+              <q-td key="percent" :props="props" width="15%">
+                {{ props.row.percent }}
+              </q-td>
+              <q-td key="score" :props="props" width="10%">
+                {{ props.row.score }}
+              </q-td>
+              <q-td key="op" :props="props" width="25%">
+                <q-btn flat color="primary" icon="visibility" @click="renderValueItemDetailDialog(props.row)">VIEW</q-btn>
+                <q-btn v-if="selectName === user.name" flat color="primary" icon="edit" @click="openDialog4editVokrListForm(props.row)">EDIT</q-btn>
+                <q-btn v-if="selectName === user.name" flat color="primary" icon="delete" @click="openDialog4delVokrListForm(props.row)">EDIT</q-btn>
+              </q-td>
+            </q-tr>
+          </q-table>
+        </q-list>
+      </q-card-section>
+    </q-card>
+  </q-dialog>
+  <q-dialog v-model="dialogValueItem" persistent transition-show="scale" transition-hide="scale">
+    <q-card class="" style="width: 600px">
+      <q-card-section>
+        <div class="text-h6">{{ isEdit4ValueItem ? '编辑' : '新增' }}Key</div>
+      </q-card-section>
+
+      <q-card-section class="q-pt-none">
+        <q-field
+          borderless
+          class="form-field">
+          <q-radio v-model="vokrForm.kind" val="1" label="工作目标" />
+          <q-radio v-model="vokrForm.kind" val="2" label="额外目标" />
+        </q-field>
+        <q-field
+          borderless
+          label="权重"
+          class="form-field">
+          <q-slider v-model="vokrForm.percent" :min="0" :max="100"
+                    label
+                    label-always/>
+        </q-field>
+        <q-field
+          class="form-field"
+          :error="$v.vokrForm.title.$error"
+          :error-message="$v.vokrForm.title.minLength ? errMessage.requireInfo : errMessage.minInfo">
+          <q-input label="内容"
+                   type="text"
+                   class="full-width"
+                   @input="$v.vokrForm.title.$touch"
+                   v-model="vokrForm.title" />
+        </q-field>
+        <q-field
+          class="form-field"
+          :error="$v.vokrForm.desc.$error"
+          :error-label="$v.vokrForm.desc.maxLength ? errMessage.requireInfo : errMessage.maxInfo">
+          <q-input label="任务详细描述"
+                   type="textarea"
+                   class="full-width"
+                   @input="$v.vokrForm.desc.$touch"
+                   v-model="vokrForm.desc" />
+        </q-field>
+        <q-field
+          borderless
+          label="分数"
+          class="form-field">
+          <q-slider v-model="vokrForm.score" :min="0" :max="100"
+                    label
+                    label-always/>
+        </q-field>
+
+        <div class="group-button">
+          <q-btn
+            :loading="loadingOkr"
+            color="primary"
+            @click="saveValueOkr">
+            保存
+            <q-spinner-hourglass slot="loading" size="20px" />
+            <span slot="loading">Loading...</span>
+          </q-btn>
+        </div>
       </q-card-section>
     </q-card>
   </q-dialog>
@@ -220,9 +337,16 @@ export default {
       loadingOkr: false,
       dialogKeyList: false,
       dialogKeyItem: false,
-      dialogItemDetail: false,
-      dialogItemDetailDesc: '',
-      dialogItemDetailTask: '',
+      dialogKeyItemDetail: false,
+      dialogKeyItemDetailDesc: '',
+      dialogKeyItemDetailTask: '',
+      isEdit4KeyItem: false,
+      dialogValueList: false,
+      dialogValueItem: false,
+      dialogValueItemDetail: false,
+      dialogValueItemDetailDesc: '',
+      dialogValueItemDetailTask: '',
+      isEdit4ValueItem: false,
       showSelfButton: false,
       selectName: '',
       selectYear: '2020',
@@ -230,14 +354,16 @@ export default {
       maximizedToggle: true,
       userList: [],
       kokrListForm: {
-        userId: '',
+        creator: '',
         team: '',
+        year: '',
+        month: '',
         content: []
       },
       kokrForm: {
-        kind: '',
+        kind: '1',
         title: '',
-        percent: '',
+        percent: 20,
         desc: ''
       },
       vokrListForm: {
@@ -247,16 +373,18 @@ export default {
         month: '',
         team: '',
         gscore: 100,
+        grade: '',
         status: '',
         comment: '',
+        comment_self: '',
         last_person: '',
         content: []
       },
       vokrForm: {
-        kind: '',
+        kind: '1',
         title: '',
-        percent: '',
-        score: 0,
+        percent: 20,
+        score: 100,
         desc: ''
       },
       tableData4self: [],
@@ -285,10 +413,40 @@ export default {
         align: 'left',
         field: 'op'
       }],
+      columnsValue: [{
+        name: 'kind',
+        label: '类型',
+        align: 'left',
+        sortable: true,
+        field: 'kind'
+      }, {
+        name: 'title',
+        label: '内容',
+        align: 'left',
+        sortable: true,
+        field: 'title'
+      }, {
+        name: 'percent',
+        label: '权重',
+        align: 'left',
+        sortable: true,
+        field: 'percent'
+      }, {
+        name: 'score',
+        label: '分数',
+        align: 'left',
+        sortable: true,
+        field: 'score'
+      }, {
+        name: 'op',
+        label: '操作',
+        align: 'left',
+        field: 'op'
+      }],
       errMessage: {
         requireInfo: '必填',
         maxInfo: '任务名称不宜超过30个字符',
-        minInfo: '内容最少10个字符',
+        minInfo: '内容最少5个字符',
         sameAsInfo: '输入的两次密码不一致'
       },
       year: '',
@@ -302,7 +460,13 @@ export default {
   validations: {
     kokrForm: {
       kind: { required },
-      title: { required, minLength: minLength(10) },
+      title: { required, minLength: minLength(5) },
+      percent: { required },
+      desc: { required, maxLength: maxLength(512) }
+    },
+    vokrForm: {
+      kind: { required },
+      title: { required, minLength: minLength(5) },
       percent: { required },
       desc: { required, maxLength: maxLength(512) }
     }
@@ -346,27 +510,33 @@ export default {
         _this.handleError(error)
       })
     },
-    saveOkr () {
+    saveKeyOkr () {
       const _this = this
       let formContent = _this.kokrListForm.content
-      console.log('11  == ', formContent)
-      formContent.forEach(e => {
-        if (e._id === _this.kokrForm._id) {
-          if (formContent.indexOf(e) > -1) {
-            let i = formContent.indexOf(e)
-            formContent.splice(i, 1)
+      if (_this.isEdit4KeyItem) {
+        formContent.forEach(e => {
+          if (e._id === _this.kokrForm._id) {
+            if (formContent.indexOf(e) > -1) {
+              let i = formContent.indexOf(e)
+              formContent.splice(i, 1)
+            }
+            formContent.push(_this.kokrForm)
+            _this.isEdit4KeyItem = false
           }
-        }
-      })
-      console.log('22  == ', formContent)
-      formContent.push(_this.kokrForm)
+        })
+      } else {
+        formContent.push(_this.kokrForm)
+      }
       _this.dialogKeyItem = false
       _this.resetKokrForm()
     },
     addKokr () {
       // TODO 新增kokr的时候,需要判断选择的selectYear和selectMonth是否处于当前的时间段
       const _this = this
-      _this.kokrListForm.userId = _this.user._id
+      _this.kokrListForm.creator = _this.user._id
+      _this.kokrListForm.year = _this.selectYear
+      _this.kokrListForm.month = _this.selectMonth
+
       _this.loadingOkr = true
       _this.$axios.post('/weeklyreportapi/kokr/add', _this.kokrListForm).then((res) => {
         if (res.data.code === 0) {
@@ -392,7 +562,7 @@ export default {
       _this.showSelfButton = (user.id === _this.user._id)
 
       const params = {
-        userId: user.id,
+        creator: user.id,
         team: user.team,
         year: _this.selectYear,
         month: _this.selectMonth
@@ -400,12 +570,12 @@ export default {
 
       _this.$axios.post('/weeklyreportapi/kokr/getOkrByUserId', params).then((res) => {
         if (res.data.code === 0 && res.data.data.length > 0) {
-          _this.kokrListForm.userId = res.data.data[0].creator
+          _this.kokrListForm.creator = res.data.data[0].creator
           _this.kokrListForm.team = res.data.data[0].team
           _this.kokrListForm.content = res.data.data[0].content
           _this.dialogKeyList = true
         } else {
-          _this.kokrListForm.userId = _this.user._id
+          _this.kokrListForm.creator = _this.user._id
           _this.kokrListForm.team = _this.user.team
           _this.kokrListForm.content = []
           _this.dialogKeyList = true
@@ -420,15 +590,15 @@ export default {
         _this.loadingOkr = false
       })
     },
-    renderItemDetailDialog (data) {
+    renderKeyItemDetailDialog (data) {
       const _this = this
-      _this.dialogItemDetailTask = data.title
-      _this.dialogItemDetailDesc = data.desc
-      _this.dialogItemDetail = true
+      _this.dialogKeyItemDetailTask = data.title
+      _this.dialogKeyItemDetailDesc = data.desc
+      _this.dialogKeyItemDetail = true
     },
     openDialog4editKokrListForm (data) {
       const _this = this
-      console.log(data)
+      _this.isEdit4KeyItem = true
       _this.kokrForm = data
       _this.dialogKeyItem = true
     },
@@ -447,14 +617,60 @@ export default {
     resetKokrForm () {
       const _this = this
       _this.kokrForm = {
-        kind: '',
+        kind: '1',
         title: '',
-        percent: '',
+        percent: 20,
         desc: ''
       }
     },
     renderUserList () {
       this.getUserList()
+    },
+    saveValueOkr () {
+      const _this = this
+      let formContent = _this.vokrListForm.content
+      if (_this.isEdit4ValueItem) {
+        formContent.forEach(e => {
+          if (e._id === _this.vokrForm._id) {
+            if (formContent.indexOf(e) > -1) {
+              let i = formContent.indexOf(e)
+              formContent.splice(i, 1)
+            }
+            formContent.push(_this.vokrForm)
+            _this.isEdit4ValueItem = false
+          }
+        })
+      } else {
+        formContent.push(_this.vokrForm)
+      }
+      _this.dialogValueItem = false
+      _this.resetVokrForm()
+    },
+    addVokr () {
+      // TODO 新增vokr的时候,需要判断选择的selectYear和selectMonth是否处于当前的时间段
+      const _this = this
+      _this.vokrListForm.year = _this.selectYear
+      _this.vokrListForm.month = _this.selectMonth
+      _this.vokrListForm.team = _this.user.team
+      _this.vokrListForm.last_person = _this.user._id
+      _this.loadingOkr = true
+      _this.$axios.post('/weeklyreportapi/vokr/add', _this.vokrListForm).then((res) => {
+        if (res.data.code === 0) {
+          _this.loadingOkr = false
+          _this.dialogValueItem = false
+          _this.$q.notify({
+            message: res.data.message,
+            color: 'positive',
+            position: 'top'
+          })
+          _this.getValueItemData({ id: _this.user._id, team: _this.user.team, name: _this.user.name })
+        } else {
+
+        }
+      }).catch((error) => {
+        console.log(error)
+        _this.loadingOkr = false
+      })
     },
     getValueItemData (user) {
       const _this = this
@@ -462,23 +678,32 @@ export default {
       _this.showSelfButton = (user.id === _this.user._id)
 
       const params = {
-        userId: user.id,
+        creator: user.id,
         team: user.team,
         year: _this.selectYear,
         month: _this.selectMonth
       }
 
-      _this.$axios.post('/weeklyreportapi/vokr/getOkrByUserId', params).then((res) => {
+      _this.$axios.post('/weeklyreportapi/vokr/getValueOkrByUserId', params).then((res) => {
         if (res.data.code === 0 && res.data.data.length > 0) {
-          _this.kokrListForm.userId = res.data.data[0].creator
-          _this.kokrListForm.team = res.data.data[0].team
-          _this.kokrListForm.content = res.data.data[0].content
-          _this.dialogKeyList = true
+          _this.vokrListForm = res.data.data[0]
+          _this.dialogValueList = true
         } else {
-          _this.kokrListForm.userId = _this.user._id
-          _this.kokrListForm.team = _this.user.team
-          _this.kokrListForm.content = []
-          _this.dialogKeyList = true
+          _this.vokrListForm = {
+            creator: _this.user._id,
+            dealer: _this.user._id,
+            year: _this.selectYear,
+            month: _this.selectMonth,
+            team: _this.user.team,
+            gscore: 100,
+            grade: '',
+            status: '1',
+            comment: '',
+            comment_self: '',
+            last_person: _this.user._id,
+            content: []
+          }
+          _this.dialogValueList = true
           _this.$q.notify({
             message: '暂无数据',
             color: 'positive',
@@ -489,6 +714,40 @@ export default {
         console.log(error)
         _this.loadingOkr = false
       })
+    },
+    renderValueItemDetailDialog (data) {
+      const _this = this
+      _this.dialogValueItemDetailTask = data.title
+      _this.dialogValueItemDetailDesc = data.desc
+      _this.dialogValueItemDetail = true
+    },
+    openDialog4editVokrListForm (data) {
+      const _this = this
+      _this.isEdit4ValueItem = true
+      _this.vokrForm = data
+      _this.dialogValueItem = true
+    },
+    openDialog4delVokrListForm (data) {
+      const _this = this
+      let formContent = _this.vokrListForm.content
+      formContent.forEach(e => {
+        if (e._id === data._id) {
+          if (formContent.indexOf(e) > -1) {
+            let i = formContent.indexOf(e)
+            formContent.splice(i, 1)
+          }
+        }
+      })
+    },
+    resetVokrForm () {
+      const _this = this
+      _this.vokrForm = {
+        kind: '1',
+        title: '',
+        percent: 20,
+        desc: '',
+        score: 100
+      }
     },
     handleError (error) {
       let isExpired = error.response.data.error === 'jwt expired'
