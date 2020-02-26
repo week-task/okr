@@ -1,1 +1,3 @@
-# okr
+# OKR
+
+Relevant Team Tool
