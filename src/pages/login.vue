@@ -25,7 +25,7 @@
     <q-field
       :error="$v.loginParams.username.$error"
       error-label="必填">
-      <q-input float-label="大名"
+      <q-input label="大名"
                @input="$v.loginParams.username.$touch"
                v-model="loginParams.username" />
     </q-field>
@@ -33,7 +33,7 @@
     <q-field
       :error="$v.loginParams.password.$error"
       error-label="必填">
-      <q-input float-label="密码"
+      <q-input label="密码"
                type="password"
                @input="$v.loginParams.password.$touch"
                v-model="loginParams.password" />
@@ -120,9 +120,10 @@ export default {
             // Bearer是JWT的头部认证
             _this.$axios.defaults.headers.common['Authorization'] = 'Bearer ' + authInfo.token.split('z|')[0]
             if (authInfo.user.role === -1) {
-              _this.$router.push('/admin')
+              window.location.href = 'https://luolinjia.com/tt/#/admin'
             } else {
-              _this.$router.push('/console')
+              // _this.$router.push('/console')
+              window.location.href = 'https://luolinjia.com/tt/#/console'
             }
           }, 1000)
         } else {

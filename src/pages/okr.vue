@@ -73,7 +73,7 @@
             <div class="text-h4 q-mb-md">Value</div>
             <q-btn v-if="!item.vokrData.content && item.name === user.name && tellDateEdit && tellNextMonthShowValue" icon="add" class="full-width" @click="getValueItemData(item)" />
             <q-btn v-if="item.vokrData.content && (item.name === user.name || item.vokrData.dealer === user._id) && tellDateEdit && tellNextMonthShowValue" icon="edit" class="full-width" @click="getValueItemData(item)" />
-            <q-btn v-if="item.vokrData.content && && (item.name !== user.name && item.vokrData.dealer !== user._id) && tellDateEdit && tellNextMonthShowValue" icon="trending_flat" class="full-width" @click="getValueItemData(item)" />
+            <q-btn v-if="item.vokrData.content && (item.name !== user.name && item.vokrData.dealer !== user._id) && tellDateEdit && tellNextMonthShowValue" icon="trending_flat" class="full-width" @click="getValueItemData(item)" />
             <div v-for="(itemP, index) in item.vokrData.content" :key="index" class="q-my-md show-kv-p">
               <span style="font-size: 16px; font-weight: 700;">● {{ itemP.title }}</span>
               <br>
@@ -285,6 +285,16 @@
           </q-table>
         </q-list>
         <q-input type="textarea" v-model="vokrListForm.comment_self" :readonly="vokrListForm.creator !== vokrListForm.dealer" icon="add" label="自我评价" class="q-mr-sm" />
+        <q-field
+          :readonly="user.role !== 0"
+          borderless
+          label="TL评分,占比30%"
+          class="form-field">
+          <q-slider v-model="vokrListForm.gscore" :min="0" :max="100"
+                    :readonly="user.role !== 0"
+                    label
+                    label-always/>
+        </q-field>
       </q-card-section>
     </q-card>
   </q-dialog>
@@ -371,7 +381,6 @@
       <q-card-section class="row items-center q-pb-none">
         <div class="text-h6">『 {{ selectName }} 』{{ selectYear }}年{{ selectMonth }}月 VALUE 提交至 『 {{ valueParent.name }} 』</div>
         <q-space />
-        <q-btn icon="close" flat round dense />
       </q-card-section>
 
       <q-card-section>
@@ -619,7 +628,7 @@ export default {
             setTimeout(() => {
               _this.userList = res.data.data
               _this.beforeShowUserList = false
-            }, 1500)
+            }, 500)
           } else if (res.data.data.length === 0) {
             _this.userList = []
           }
@@ -1067,6 +1076,7 @@ export default {
         _this.vokrListForm.status = '21'
       }
       _this.vokrListForm.dealer = _this.vokrListForm.creator
+      _this.vokrListForm.gscore = 100
       _this.vokrListForm.last_person = _this.user._id
       _this.loadingOkr = true
 

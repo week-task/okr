@@ -254,7 +254,8 @@ export default {
     logout () {
       localStorage.removeItem('user')
       localStorage.removeItem('token')
-      this.$router.push('/login')
+      // this.$router.push('/login')
+      window.location.href = 'https://luolinjia.com/tt/#/login'
     },
     handleError (error) {
       let isExpired = error.response.data.error === 'jwt expired'
