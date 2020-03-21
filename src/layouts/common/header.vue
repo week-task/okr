@@ -31,7 +31,7 @@
     </div>
 
     <q-breadcrumbs v-if="navList.length > 0" separator="●" color="grey-6" active-color="dark" class="navigator">
-      <q-breadcrumbs-el v-for="(item, index) in navList" :label="item.label" :to="item.toLink" :key="index" />
+      <q-breadcrumbs-el v-for="(item, index) in navList" style="cursor: pointer;" :label="item.label" @click="goHome" :key="index" />
     </q-breadcrumbs>
 
     <q-dialog no-esc-dismiss v-model="avatarUpload" @hide="resetForm" :content-css="{padding: '50px', minWidth: '500px'}">
@@ -242,6 +242,9 @@ export default {
       }).catch((error) => {
         _this.handleError(error)
       })
+    },
+    goHome () {
+      window.location.href = 'https://luolinjia.com/tt/#/console'
     },
     toggleUserInfo () {
       const _this = this

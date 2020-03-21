@@ -122,7 +122,7 @@ export default {
             if (authInfo.user.role === -1) {
               window.location.href = 'https://luolinjia.com/tt/#/admin'
             } else {
-              // _this.$router.push('/console')
+              // _this.$router.push('/')
               window.location.href = 'https://luolinjia.com/tt/#/console'
             }
           }, 1000)
