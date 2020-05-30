@@ -614,17 +614,26 @@ export default {
       _this.selectMonth = month
     },
     tellDateEditF () {
+      // changelog: 根据涛哥这边的要求,我们的绩效每个月不再固定,所以时间上,OKR系统要根据适度的进行调配
       const _this = this
       let year = date.formatDate(Date.now(), 'YYYY')
       let month = date.formatDate(Date.now(), 'M')
       let day = date.formatDate(Date.now(), 'D')
 
-      if (year !== _this.selectYear || (month !== _this.selectMonth && parseInt(month) + 1 !== parseInt(_this.selectMonth)) || parseInt(day) < 20) {
+      // if (year !== _this.selectYear || (month !== _this.selectMonth && parseInt(month) + 1 !== parseInt(_this.selectMonth)) || parseInt(day) < 20) {
+      //  _this.tellDateEdit = false
+      // } else {
+      //  _this.tellDateEdit = true
+      // }
+
+      // 2020-05-30: 更新为本月可以评价上个月的绩效
+      if (year !== _this.selectYear || !(month === _this.selectMonth || parseInt(month) - 1 === parseInt(_this.selectMonth)) || parseInt(month) + 1 === parseInt(_this.selectMonth) || (parseInt(day) < 20 && parseInt(day) > 10)) {
         _this.tellDateEdit = false
       } else {
         _this.tellDateEdit = true
       }
-      _this.tellCurrentMonthShowKey = month !== _this.selectMonth
+
+      _this.tellCurrentMonthShowKey = parseInt(month) + 1 === parseInt(_this.selectMonth)
       _this.tellNextMonthShowValue = parseInt(month) + 1 !== parseInt(_this.selectMonth)
     },
     getUserList (id) {
