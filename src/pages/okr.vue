@@ -627,14 +627,50 @@ export default {
       // }
 
       // 2020-05-30: 更新为本月可以评价上个月的绩效
-      if (year !== _this.selectYear || !(month === _this.selectMonth || parseInt(month) - 1 === parseInt(_this.selectMonth)) || parseInt(month) + 1 === parseInt(_this.selectMonth) || (parseInt(day) < 20 && parseInt(day) > 10)) {
-        _this.tellDateEdit = false
-      } else {
+      // if (year !== _this.selectYear || !(month === _this.selectMonth || parseInt(month) - 1 === parseInt(_this.selectMonth) || parseInt(month) + 1 === parseInt(_this.selectMonth)) || (parseInt(day) < 20 && parseInt(day) > 10)) {
+      //  _this.tellDateEdit = false
+      // } else {
+      //  _this.tellDateEdit = true
+      // }
+
+      // _this.tellCurrentMonthShowKey = parseInt(month) - 1 !== parseInt(_this.selectMonth)
+      // _this.tellNextMonthShowValue = parseInt(month) + 1 !== parseInt(_this.selectMonth)
+
+      if (parseInt(day) < 10 || parseInt(day) > 20) {
         _this.tellDateEdit = true
+      } else {
+        _this.tellDateEdit = false
       }
 
-      _this.tellCurrentMonthShowKey = parseInt(month) + 1 === parseInt(_this.selectMonth)
-      _this.tellNextMonthShowValue = parseInt(month) + 1 !== parseInt(_this.selectMonth)
+      _this.tellCurrentMonthShowKey = false
+      _this.tellNextMonthShowValue = false
+
+      if (year === _this.selectYear) {
+        if (month === _this.selectMonth) {
+          if (parseInt(day) < 10) {
+            _this.tellCurrentMonthShowKey = true
+            _this.tellNextMonthShowValue = false
+          } else if (parseInt(day) > 20) {
+            _this.tellCurrentMonthShowKey = false
+            _this.tellNextMonthShowValue = true
+          }
+        } else {
+          if (parseInt(month) - 1 === parseInt(_this.selectMonth)) {
+            if (parseInt(day) < 10) {
+              _this.tellCurrentMonthShowKey = false
+              _this.tellNextMonthShowValue = true
+            }
+          } else if (parseInt(month) + 1 === parseInt(_this.selectMonth)) {
+            if (parseInt(day) > 20) {
+              _this.tellCurrentMonthShowKey = true
+              _this.tellNextMonthShowValue = false
+            }
+          }
+        }
+      } else {
+        _this.tellCurrentMonthShowKey = false
+        _this.tellNextMonthShowValue = false
+      }
     },
     getUserList (id) {
       const _this = this
