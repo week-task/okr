@@ -555,7 +555,7 @@ export default {
       year: '',
       month: '',
       optionsYear: [],
-      optionsMonth: []
+      optionsMonth: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
     }
   },
   validations: {
@@ -606,10 +606,19 @@ export default {
 
       for (let i = 2020; i <= parseInt(year); i++) {
         _this.optionsYear.push(i + '')
+        if (month === '12') {
+          _this.optionsYear.push((i + 1) + '')
+        }
       }
-      for (let j = 1; j <= parseInt(month) + 1; j++) {
-        _this.optionsMonth.push(j + '')
-      }
+      // if (year === '2020') {
+      //   for (let j = 1; j <= 12; j++) {
+      //     _this.optionsMonth.push(j + '')
+      //   }
+      // } else if (month === '12' || parseInt(year) > 2020) {
+      //   for (let j = 1; j <= parseInt(month) + 1; j++) {
+      //     _this.optionsMonth.push(j + '')
+      //   }
+      // }
       _this.selectYear = year
       _this.selectMonth = month
     },
@@ -667,6 +676,12 @@ export default {
             }
           }
         }
+      } else if (parseInt(year) === parseInt(_this.selectYear) - 1 && parseInt(_this.selectMonth) === 1) {
+        _this.tellCurrentMonthShowKey = true
+        _this.tellNextMonthShowValue = false
+      } else if (parseInt(year) === parseInt(_this.selectYear) + 1 && parseInt(_this.selectMonth) === 12) {
+        _this.tellCurrentMonthShowKey = false
+        _this.tellNextMonthShowValue = true
       } else {
         _this.tellCurrentMonthShowKey = false
         _this.tellNextMonthShowValue = false
