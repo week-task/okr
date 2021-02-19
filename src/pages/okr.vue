@@ -645,7 +645,7 @@ export default {
       // _this.tellCurrentMonthShowKey = parseInt(month) - 1 !== parseInt(_this.selectMonth)
       // _this.tellNextMonthShowValue = parseInt(month) + 1 !== parseInt(_this.selectMonth)
 
-      if (parseInt(day) < 10 || parseInt(day) > 20) {
+      if (parseInt(day) < 12 || parseInt(day) > 20) {
         _this.tellDateEdit = true
       } else {
         _this.tellDateEdit = false
@@ -656,7 +656,7 @@ export default {
 
       if (year === _this.selectYear) {
         if (month === _this.selectMonth) {
-          if (parseInt(day) < 10) {
+          if (parseInt(day) < 12) {
             _this.tellCurrentMonthShowKey = true
             _this.tellNextMonthShowValue = false
           } else if (parseInt(day) > 20) {
@@ -665,7 +665,7 @@ export default {
           }
         } else {
           if (parseInt(month) - 1 === parseInt(_this.selectMonth)) {
-            if (parseInt(day) < 10) {
+            if (parseInt(day) < 12) {
               _this.tellCurrentMonthShowKey = false
               _this.tellNextMonthShowValue = true
             }
