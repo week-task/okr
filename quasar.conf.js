@@ -27,12 +27,13 @@ module.exports = function (ctx) {
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
 
       'roboto-font', // optional, you are not bound to it
-      'material-icons' // optional, you are not bound to it
+      'material-icons', // optional, you are not bound to it
+      'material-icons-sharp'
     ],
 
     // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-framework
     framework: {
-      iconSet: 'material-icons', // Quasar icon set
+      iconSet: 'material-icons-sharp', // Quasar icon set
       lang: 'en-us', // Quasar language pack
 
       // Possible values for "all":
@@ -99,7 +100,7 @@ module.exports = function (ctx) {
       port: 8112,
       proxy: {
         // proxy all requests starting with /api to jsonplaceholder
-        '/weeklyreportapi': 'http://127.0.0.1:22230'
+        '/api': 'http://172.19.3.66:15798/'
       },
       open: true // opens browser window automatically
     },

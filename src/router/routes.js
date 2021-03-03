@@ -9,7 +9,7 @@ const routes = [
     component: () => import('pages/okr'),
     meta: {
       requireAuth: true,
-      title: '月报OKR'
+      title: 'OKR'
     }
   }
 ]
